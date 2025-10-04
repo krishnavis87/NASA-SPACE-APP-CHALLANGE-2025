@@ -2,6 +2,7 @@ import { useState } from "react";
 import { StarField } from "@/components/StarField";
 import { WeatherSearch } from "@/components/WeatherSearch";
 import { WeatherResults } from "@/components/WeatherResults";
+import { Earth3D } from "@/components/Earth3D";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import spaceBackground from "@/assets/space-background.jpg";
@@ -102,9 +103,15 @@ const Index = () => {
       <div className="relative z-10 container mx-auto px-4 py-12">
         {/* Hero Section */}
         <div className="text-center mb-12 space-y-6 animate-fade-in">
-          <h1 className="text-5xl md:text-7xl font-bold gradient-text mb-4">
+          <h1 className="text-5xl md:text-7xl font-bold gradient-text mb-8">
             NASA Weather AI Challenge
           </h1>
+          
+          {/* 3D Earth */}
+          <div className="mb-8">
+            <Earth3D />
+          </div>
+          
           <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
             Experience weather forecasting like never before with AI-powered insights and predictions
           </p>
