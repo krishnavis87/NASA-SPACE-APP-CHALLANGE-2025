@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# WELCOME TO NASA SPACE APP CHALLANGE 2025
 
 ## Project info
 
