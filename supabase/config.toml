@@ -1,0 +1,4 @@
+project_id = "vhzkpypdqacqeovkugup"
+
+[functions.weather-ai-advice]
+verify_jwt = false
