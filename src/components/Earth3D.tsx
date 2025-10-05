@@ -1,81 +1,88 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useMemo } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Sphere } from '@react-three/drei';
+import * as THREE from 'three';
 
-export const Earth3D = () => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isHovering, setIsHovering] = useState(false);
+function EarthSphere() {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const atmosphereRef = useRef<THREE.Mesh>(null);
+  const cloudsRef = useRef<THREE.Mesh>(null);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    // Ensure video is ready
-    video.load();
-  }, []);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const video = videoRef.current;
-    const container = containerRef.current;
-    if (!video || !container) return;
-
-    const rect = container.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = x / rect.width;
-    
-    // Scrub through video based on mouse position (0 to duration)
-    if (video.duration) {
-      video.currentTime = percentage * video.duration;
+  // Rotate the Earth continuously
+  useFrame(() => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y += 0.001;
     }
-  };
-
-  const handleMouseEnter = () => {
-    setIsHovering(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovering(false);
-    const video = videoRef.current;
-    if (video) {
-      // Return to start position when mouse leaves
-      video.currentTime = 0;
+    if (cloudsRef.current) {
+      cloudsRef.current.rotation.y += 0.0015;
     }
-  };
+  });
+
+  // Load high-quality Earth textures
+  const earthTexture = useMemo(() => 
+    new THREE.TextureLoader().load(
+      'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg'
+    ), []
+  );
+
+  const cloudsTexture = useMemo(() => 
+    new THREE.TextureLoader().load(
+      'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png'
+    ), []
+  );
 
   return (
-    <div className="w-full h-[400px] md:h-[500px] flex items-center justify-center">
-      <div
-        ref={containerRef}
-        className="relative w-full max-w-[500px] h-full rounded-2xl overflow-hidden glass-panel cursor-pointer transition-all duration-300 hover:scale-105"
-        onMouseMove={handleMouseMove}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        style={{
-          boxShadow: isHovering 
-            ? '0 0 40px rgba(74, 158, 255, 0.6), 0 0 80px rgba(74, 158, 255, 0.3)' 
-            : '0 10px 40px rgba(0, 0, 0, 0.3)',
-        }}
-      >
-        <video
-          ref={videoRef}
-          className="w-full h-full object-cover"
-          muted
-          playsInline
-          preload="auto"
-        >
-          <source src="/earth-rotation.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-        
-        {/* Overlay hint */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium bg-black/30 px-4 py-2 rounded-full backdrop-blur-sm pointer-events-none transition-opacity duration-300"
-          style={{ opacity: isHovering ? 0 : 1 }}
-        >
-          Move mouse to rotate Earth
-        </div>
+    <group>
+      {/* Main Earth sphere */}
+      <Sphere ref={meshRef} args={[2.5, 64, 64]}>
+        <meshStandardMaterial
+          map={earthTexture}
+          metalness={0.2}
+          roughness={0.8}
+        />
+      </Sphere>
 
-        {/* Atmospheric glow overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 via-transparent to-blue-900/20 pointer-events-none" />
-      </div>
+      {/* Clouds layer */}
+      <Sphere ref={cloudsRef} args={[2.52, 64, 64]}>
+        <meshStandardMaterial
+          map={cloudsTexture}
+          transparent
+          opacity={0.4}
+          depthWrite={false}
+        />
+      </Sphere>
+
+      {/* Atmospheric glow */}
+      <Sphere ref={atmosphereRef} args={[2.8, 64, 64]}>
+        <meshBasicMaterial
+          color="#4a9eff"
+          transparent
+          opacity={0.1}
+          side={THREE.BackSide}
+        />
+      </Sphere>
+    </group>
+  );
+}
+
+export const Earth3D = () => {
+  return (
+    <div className="w-full h-[400px] md:h-[500px]">
+      <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
+        <ambientLight intensity={0.3} />
+        <directionalLight position={[5, 3, 5]} intensity={1.5} color="#ffffff" />
+        <pointLight position={[-10, -5, -5]} intensity={0.3} color="#4a9eff" />
+        <pointLight position={[10, 5, -10]} intensity={0.2} color="#ffffff" />
+        <EarthSphere />
+        <OrbitControls 
+          enableZoom={true}
+          minDistance={5}
+          maxDistance={15}
+          enablePan={false}
+          autoRotate
+          autoRotateSpeed={0.3}
+        />
+      </Canvas>
     </div>
   );
 };
