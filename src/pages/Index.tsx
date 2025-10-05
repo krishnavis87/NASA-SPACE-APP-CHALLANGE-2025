@@ -37,8 +37,11 @@ const Index = () => {
 
       const { latitude, longitude } = geocodeData.results[0];
 
-      // Get weather forecast
-      const dateStr = date.toISOString().split('T')[0];
+      // Get weather forecast - use local date to avoid timezone issues
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
       const weatherResponse = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,precipitation_sum,windspeed_10m_max&start_date=${dateStr}&end_date=${dateStr}&timezone=auto`
       );
